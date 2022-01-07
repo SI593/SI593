@@ -1,0 +1,814 @@
+import os
+import discord
+import random
+from discord.ext import commands
+from discord import Member
+from discord.ext.commands import has_permissions, MissingPermissions
+import keep_alive
+import asyncio
+from random import choice
+from discord.utils import find
+import sys
+from asyncio import sleep
+import aiohttp
+import urllib.parse
+from urllib.parse import urlencode
+import parse
+import re
+from discord_slash.utils.manage_components import create_button, create_actionrow
+from discord_slash.model import ButtonStyle
+from discord_slash.utils.manage_components import wait_for_component
+
+
+
+client = commands.Bot(command_prefix=';')
+client.remove_command('help')
+prefix = client.command_prefix
+
+WIKI_ENDPOINT = 'https://en.wikipedia.org/w/api.php'
+
+NUMBER_OF_SENTENCES = 10  # (must be between 1 and 10)
+
+@client.event
+async def on_ready():
+    prefix = client.command_prefix
+    await client.change_presence(
+        activity=discord.Activity(
+            type=discord.ActivityType.watching,
+            name=f"Playing with {len(client.users)} users"))
+    
+    
+
+
+async def status_task():
+    while True:
+        await client.change_presence(
+        activity=discord.Activity(
+            type=discord.ActivityType.watching,
+            name=f'Prefix {prefix} \Servers : ' + str(len(client.guilds))))
+        await asyncio.sleep(5)
+        await client.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= f"Invite me, Type {prefix}inv "))
+        await asyncio.sleep(5)
+
+
+        
+@client.event
+async def on_ready():
+    ...
+    client.loop.create_task(status_task())
+
+@client.command()
+async def help(ctx):
+  prefix = client.command_prefix
+  em = discord.Embed(title = "Help", description = f"{prefix}help_<category>")
+  em.add_field(name = "Fun", value = "Games", inline = True)
+  em.add_field(name = "Utilities", value = "This is for Utilities", inline = True)
+  em.add_field(name = "Setprefix", value = f"{prefix}setprefix <prefix>")
+  em.add_field(name = "Invite", value = f"{prefix}invite")
+  em.add_field(name = "Nerd", value = "Nerd commands", inline = True)
+  await ctx.author.send(embed = em)
+  await ctx.send("Check DMs", delete_after=10.0)
+
+@client.command(aliases = ["help_fun"])
+async def h_f(ctx):
+  prefix = client.command_prefix
+  em = discord.Embed(title = "Fun", description = f"To find info more on commands type info_fun")
+  em.add_field(name = "L", value = "L a user")
+  em.add_field(name = "ask", value = f"ask a question to 8ball")
+  em.add_field(name = "coinflip", value = f"Flip a coin")
+  em.add_field(name = "hug", value = f"hug a user")
+  em.add_field(name = "Kill", value = f"kill a user")
+  em.add_field(name = "ping", value = f"shows the ping of the client")
+  em.add_field(name = "RPS", value = f"play rps (rock paper or scissors)")
+  em.add_field(name = "ship", value = f"ship 2 users, find the lovers.")
+  em.add_field(name = "slap", value = f"slap a user")
+  em.add_field(name = "yeet", value = f"yeet a user")
+  em.add_field(name = "Guess", value = f"guess a number <1-5>")
+  em.add_field(name = "TicTacToe", value = f"play ttt with a user")
+  em.add_field(name = "Truth or dare", value = f"truth or dare")
+  em.add_field(name = "Spam", value = f"spam something as many times as u want. ")
+  em.add_field(name ="Act", value = f"Act like someone else")
+  em.add_field(name ="Thx", value = f"Say thx to the bot")
+  em.add_field(name ="Memes", value = f"Get some memes")
+  em.add_field(name="Youtube", value="watch videos from youtube")
+  await ctx.author.send(embed = em)
+  await ctx.send("Check DMs", delete_after=10.0)
+
+
+@client.command(aliases = ["info_fun"])
+async def i_f(ctx):
+  prefix = client.command_prefix
+  em = discord.Embed(title = "Fun Info", description = f"")
+  em.add_field(name = "L", value = f"{prefix}L")
+  em.add_field(name = "ask", value = f"{prefix}ask <question>")
+  em.add_field(name = "coinflip", value = f"{prefix}coinflip")
+  em.add_field(name = "hug", value = f"{prefix}hug")
+  em.add_field(name = "Kill", value = f"{prefix}kill")
+  em.add_field(name = "ping", value = f"{prefix}ping")
+  em.add_field(name = "RPS", value = f"{prefix}rps <rock paper or scissors>")
+  em.add_field(name = "ship", value = f"{prefix}ship")
+  em.add_field(name = "slap", value = f"{prefix}slap")
+  em.add_field(name = "yeet", value = f"{prefix}yeet")
+  em.add_field(name = "Guess", value = f"{prefix}guess <1-5>")
+  em.add_field(name = "TicTacToe", value = f"{prefix}ttt <user1> <user2>")
+  em.add_field(name = "Truth or dare", value = f"{prefix}tod")
+  em.add_field(name = "Spam", value = f"{prefix}spam <Number> <message>")
+  em.add_field(name = "Act", value = f"{prefix}act <user> <message>")
+  em.add_field(name = "Thx", value = f"{prefix}thx")
+  em.add_field(name = "Meme", value = f"{prefix}meme")
+  em.add_field(name = "Youtube", value = f"{prefix}yt, {prefix}youtube <name of video or name of youtuber>")
+  await ctx.author.send(embed = em)
+  await ctx.send("Check DMs", delete_after=10.0)
+
+
+@client.command(aliases = ['help_utils'])
+async def h_u(ctx):
+  prefix = client.command_prefix
+  em = discord.Embed(title = "Utils", description = "To find info more on commands type info_utils")
+
+  em.add_field(name = "Toggle", value = f"Stops a command. Only owner can use.")
+  em.add_field(name = "Logout", value = f"Logs the bot out. Only owner can use.")
+  em.add_field(name = "snipe", value = f"Snipe a deletd message")
+  em.add_field(name = "clear", value = f"Clears messages")
+  em.add_field(name = "Server", value = f"Link to join bot help server")
+  await ctx.author.send(embed = em)
+  await ctx.send("Check DMs", delete_after=10.0)
+
+@client.command(aliases = ['info_utils'])
+async def i_u(ctx):
+  prefix = client.command_prefix
+  em = discord.Embed(title = "Utils Info", description = "")
+  em.add_field(name = "Toggle", value = f"{prefix}toggle <command>")
+  em.add_field(name = "Logout", value = f"{prefix}logout")
+  em.add_field(name = "snipe", value = f"{prefix}snipe")
+  em.add_field(name = "clear", value = f"{prefix}clear <number of messages>")
+  em.add_field(name = "Server", value = f"{prefix}server")
+  await ctx.author.send(embed = em)
+  await ctx.send("Check DMs", delete_after=10.0)
+
+@client.command(aliases =["help_nerd"])
+async def h_n(ctx):
+  prefix = client.command_prefix
+  em = discord.Embed(title = "Nerd", description = "To find info more on commands type info_nerd")
+  em.add_field(name = "Add", value = f"Add 2 numbers")
+  em.add_field(name = "Sub", value = f"Subtract 2 numbers")
+  em.add_field(name = "Div", value = f"Divide 2 numbers")
+  em.add_field(name = "Mul", value = f"Multiply 2 numbers")
+  em.add_field(name="Wiki", value='search on wikipedia')
+  em.add_field(name = "Google", value = "Gives you links for websites that have answers to your questions")
+  await ctx.author.send(embed = em)
+  await ctx.send("Check DMs", delete_after=10.0)
+
+@client.command(aliases =["info_nerd"])
+async def i_n(ctx):
+  prefix = client.command_prefix
+  em = discord.Embed(title = "Nerd Info", description = "")
+  em.add_field(name = "Add", value = f"{prefix}add <num 1> <num2>")
+  em.add_field(name = "Sub", value = f"{prefix}sub <num 1> <num2>")
+  em.add_field(name = "Div", value = f"{prefix}div <num 1> <num2>")
+  em.add_field(name = "Mul", value = f"{prefix}mul <num 1> <num2>")
+  em.add_field(name="Wiki", value=f"{prefix}wiki <topic>")
+  em.add_field(name="Google", value=f"{prefix}google <question>")
+  await ctx.author.send(embed = em)
+  await ctx.send("Check DMs", delete_after=10.0)
+
+
+@client.command(aliases=["sp"])
+async def setprefix(ctx, prefix):
+    client.command_prefix = prefix
+    await ctx.send(f"Prefix changed to ``{prefix}``")
+
+
+@client.event
+async def on_guild_join(guild):
+    prefix = client.command_prefix
+    for channel in guild.text_channels:
+        if channel.permissions_for(guild.me).send_messages:
+            await channel.send(f'Hey there! I am Yeet bot. My prefix is ``{prefix}``. i am happy to be here <a:neon:914720841718173737>.')
+            em = discord.Embed(title = "Help", description = f"{prefix}help_<category>")
+            em.add_field(name = "Fun", value = "Games", inline = False)
+            em.add_field(name = "Utilities", value = "This is for Utilities", inline = True)
+            em.add_field(name = "Setprefix", value = f"{prefix}setprefix <prefix>")
+            await channel.send(embed = em)
+        break
+
+
+@client.command(aliases=['disconnect', 'close', 'stopbot'])
+@commands.is_owner()
+async def logout(ctx):
+    """
+    If the user running the command owns the bot then this will disconnect the bot from discord.
+    """
+    await ctx.send(f"Hey {ctx.author.mention}, I am now logging out :wave:")
+    await client.logout()
+
+@client.command(name="toggle", description="Enable or disable a command!")
+@commands.is_owner()
+async def toggle(ctx, *, command):
+        command = client.get_command(command)
+
+        if command is None:
+            embed = discord.Embed(title="ERROR", description="I can't find a command with that name!", color=0xff0000)
+            await ctx.send(embed=embed)
+
+        elif ctx.command == command:
+            embed = discord.Embed(title="ERROR", description="You cannot disable this command.", color=0xff0000)
+            await ctx.send(embed=embed)
+
+        else:
+            command.enabled = not command.enabled
+            ternary = "enabled" if command.enabled else "disabled"
+            embed = discord.Embed(title="Toggle", description=f"I have {ternary} {command.qualified_name} for you!", color=0xff00c8)
+            await ctx.send(embed=embed)
+
+
+
+#Moderation                     stop   bruhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh
+
+@client.command(pass_context=True)
+async def clear(ctx, limit: int):
+        await ctx.channel.purge(limit=limit)
+        await ctx.send(f'I have cleared the messages {ctx.author.mention}', delete_after=5.0)
+        await ctx.message.delete()
+
+@client.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.MissingPermissions):
+        await ctx.send("You cant do that!")
+
+
+
+snipe_message_author = {}
+snipe_message_content = {}
+
+@client.event
+async def on_message_delete(message):
+     snipe_message_author[message.channel.id] = message.author
+     snipe_message_content[message.channel.id] = message.content
+     await asyncio.sleep(86400)
+     del snipe_message_author[message.channel.id]
+     del snipe_message_content[message.channel.id]
+
+
+@client.command(aliases = ['sn'])
+async def snipe(ctx):
+    channel = ctx.channel
+    try: #This piece of code is run if the bot finds anything in the dictionary
+        em = discord.Embed(title = f"Last deleted message in #{channel.name}", description = f"This message was deleted by {snipe_message_author[channel.id]}")
+        em.add_field(name = "Deleted message", value = snipe_message_content[channel.id])
+        await ctx.send(embed = em)
+    except: #This piece of code is run if the bot doesn't find anything in the dictionary
+        await ctx.send(f"There are no recently deleted messages in #{channel.name}")
+
+
+#Games 333333333333333333333333333333333333333333333333333333333333333333333333333333333333
+@client.command(aliases=["8ball"])
+async def ask(ctx, *, question):
+    responses = ['It is certain.', 
+                 'It is decidedly so.', 
+                 'Without a doubt.', 
+                 'Yes definitely.', 
+                 'You may rely on it.', 
+                 'As I see it, yes.', 
+                 'Most likely.', 
+                 'Outlook good.', 
+                 'Yes.', 
+                 'Signs point to yes.', 
+                 'Reply hazy, try again.', 
+                 'Ask again later.', 
+                 'Better not tell you now.', 
+                 'Cannot predict now.', 
+                 'Concentrate and ask again.', 
+                 'Dont count on it.', 
+                 'My reply is no.', 
+                 'My sources say no.', 
+                 'Outlook not so good.', 
+                 'Very doubtful.']
+    await ctx.send (f"Question: {question}\nAnswer: {random.choice(responses)}")
+
+@client.command()
+async def L(ctx):
+    responses = ['https://tenor.com/view/fortnite-dance-take-the-l-loser-gif-13711735', 
+                 'https://tenor.com/view/take-your-l-skeleton-dance-fortnite-lose-gif-16185075', 
+                 'https://tenor.com/view/take-the-l-art-loser-gif-13820755', 
+                 'https://tenor.com/view/thanos-fortnite-takethel-dance-gif-12100688', 
+                 'https://tenor.com/view/fortnite-take-the-l-loser-you-lose-loss-gif-19565056', 
+                 'You got L on idiot']
+    await ctx.send (f"{random.choice(responses)}")
+
+
+
+@client.command()
+async def slap(ctx):
+    responses = ['https://tenor.com/view/slap-in-the-face-angry-gtfo-bitc-bitch-slap-gif-15667197', 
+                 'https://tenor.com/view/slap-bear-slap-me-you-gif-17942299', 
+                 'https://tenor.com/view/rascal-rascal-does-not-dream-of-bunny-girl-senpai-slap-anime-mai-gif-19885576', 
+                 'https://tenor.com/view/boy-punish-mad-pissed-off-slap-gif-14667643', 
+                 'https://tenor.com/view/spongebob-squarepants-patrick-star-gloves-slap-gif-17514643', 
+                 'https://tenor.com/view/slap-kassandra-lee-smack-slap-in-the-face-spank-gif-17831871']
+    await ctx.send (f"{random.choice(responses)}")
+    
+
+
+
+@client.command()
+async def kill(ctx):
+    responses =    ['https://tenor.com/view/youre-already-dead-omae-wa-mou-shindeiru-fist-of-the-north-star-gif-14326210', 
+                 'https://tenor.com/view/among-us-amogus-among-us-kill-amongus-pixel-amongus-death-gif-20955643', 
+                 'https://tenor.com/view/among-us-kill-gif-19295404', 
+                 'https://tenor.com/view/anime-gif-19109520', 
+                 'https://tenor.com/view/toradora-taiga-disappointed-anime-annoyed-gif-14657897', 
+                 'https://tenor.com/view/among-us-impostor-kill-kaif-pink-alien-gif-16400090']
+    await ctx.send (f"{random.choice(responses)}")
+   
+                
+
+@client.command()
+async def hug(ctx):
+    responses =    ['https://tenor.com/view/sticker-hug-couple-love-hug-love-couple-gif-22965993', 
+                 'https://tenor.com/view/hugs-sending-virtual-hugs-loading-gif-8158818', 
+                 'https://tenor.com/view/puuung-cute-hug-love-gif-13113601', 
+                 'https://tenor.com/view/yoriko-frymiko-fryes-frymiko-hug-gif-22979062', 
+                 'https://tenor.com/view/anime-hug-gif-15249774', 
+                 'https://tenor.com/view/anime-cute-girl-kotori-itsuka-date-a-live-gif-17438857']
+    await ctx.send (f"{random.choice(responses)}")
+
+
+
+
+@client.command()
+async def yeet(ctx):
+    responses =    ['https://tenor.com/view/yeet-lion-king-simba-rafiki-throw-gif-16194362', 
+                 'https://tenor.com/view/yeet-naruto-sakura-yeetnaruto-gif-21167415', 
+                 'https://tenor.com/view/yeet-cute-green-happy-gif-16684300', 
+                 'https://tenor.com/view/see-ya-ya-yeet-ash-chucks-pikachu-im-sick-of-you-now-throw-gif-16987702', 
+                 'yeet!!!', 
+                 'https://tenor.com/view/yeet-anime-gif-22608182']
+    await ctx.send (f"{random.choice(responses)}")
+
+
+@client.command(pass_context=True)
+async def meme(ctx):
+    embed = discord.Embed(title="", description="")
+
+    async with aiohttp.ClientSession() as cs:
+        async with cs.get('https://www.reddit.com/r/memes/hot.json?') as r:
+            res = await r.json()
+            embed.set_image(url=res['data']['children'] [random.randint(0, 25)]['data']['url'])
+            await ctx.send(embed=embed)
+
+
+
+@client.command()
+async def ship(ctx, user1: discord.Member, user2: discord.Member):
+    love=random.randint(0,100)
+    await ctx.send(':heart:' + str(love) + '%:heart: \n ' f"{user1.mention} & {user2.mention}")
+
+
+@client.command()
+async def rps(ctx, message):
+  answer = message.lower()
+  choices = ["rock", "paper", "scissors"]
+  computer_answer = random.choice(choices)
+  if answer not in choices:
+    await ctx.send("That is not a valid option, please choose between rock, paper, scissors!")
+    return
+  else:
+      if computer_answer == answer:
+        await ctx.send(f"Tie we both picked {answer} <:bruhh:914734548976300062>")
+      
+      if computer_answer == "rock":
+        if answer == "paper":
+          await ctx.send(f"You win! I picked {computer_answer} and you picked {answer}! <a:neon_stickman:914734586838257744>")
+
+      if computer_answer == "paper":
+        if answer == "rock":
+          await ctx.send(f"I win! I picked {computer_answer} and you picked {answer}! <a:neon_stickman:914734586838257744>") 
+
+      if computer_answer == "scissors":
+        if answer == "rock":
+          await ctx.send(f"You win! I picked {computer_answer} and you picked {answer}! <a:neon_stickman:914734586838257744>")
+
+      if computer_answer == "rock":
+        if answer == "scissors":
+          await ctx.send(f"I win! I picked {computer_answer} and you picked {answer}! <a:neon_stickman:914734586838257744>")
+
+      if computer_answer == "paper":
+        if answer == "scissors":
+          await ctx.send(f"You win! I picked {computer_answer} and you picked {answer}! <a:neon_stickman:914734586838257744>")
+
+      if computer_answer == "scissors":
+        if answer == "paper":
+          await ctx.send(f"I win! I picked {computer_answer} and you picked {answer}! <a:neon_stickman:914734586838257744>")
+
+@client.command(aliases=['flip'])
+async def coinflip(ctx):
+  responses = ['heads','tails', 'tails', 'heads']
+  await ctx.send(f'It is {random.choice(responses)}')
+
+@client.command(aliases=['rg'])
+async def guess(ctx, *, number=0):
+  number_list = [1, 2, 3, 4, 5]
+  correct_number = random.choice(number_list)
+
+  if number == correct_number:
+    await ctx.send(f'You Picked The Correct Number! You Won <a:neon_stickman:914734586838257744>. The number was {correct_number} Thanks For Playing!')
+  
+  else:
+    embedVar = discord.Embed(title=f'Your Number Is {number}', color=0xFF0000)
+    embedVar.add_field(name=f"Sorry, You Picked The Wrong Number. The number was {correct_number}", value="Thanks For Playing!")
+    await ctx.send(embed=embedVar)
+
+player1 = ""
+player2 = ""
+turn = ""
+gameOver = True
+
+board = []
+
+winningConditions = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6]
+]
+
+@client.command(aliases = ["ttt"])
+async def tictactoe(ctx, p1: discord.Member, p2: discord.Member):
+    global count
+    global player1
+    global player2
+    global turn
+    global gameOver
+    
+    if gameOver:
+        global board
+        board = [":white_large_square:", ":white_large_square:", ":white_large_square:",
+                 ":white_large_square:", ":white_large_square:", ":white_large_square:",
+                 ":white_large_square:", ":white_large_square:", ":white_large_square:"]
+        turn = ""
+        gameOver = False
+        count = 0
+
+        player1 = p1
+        player2 = p2
+
+        # print the board
+        line = ""
+        for x in range(len(board)):
+            if x == 2 or x == 5 or x == 8:
+                line += " " + board[x]
+                await ctx.send(line)
+                line = ""
+            else:
+                line += " " + board[x]
+        await ctx.send(f"{prefix}place <number>")
+        # determine who goes first
+        num = random.randint(1, 2)
+        if num == 1:
+            turn = player1
+            await ctx.send("It is <@" + str(player1.id) + ">'s turn.")
+        elif num == 2:
+            turn = player2
+            await ctx.send("It is <@" + str(player2.id) + ">'s turn.")
+    else:
+        await ctx.send("A game is already in progress! Finish it before starting a new one.")
+
+@client.command()
+async def place(ctx, pos: int):
+    global turn
+    global player1
+    global player2
+    global board
+    global count
+    global gameOver
+
+    if not gameOver:
+        mark = ""
+        if turn == ctx.author:
+            if turn == player1:
+                mark = ":regional_indicator_x:"
+            elif turn == player2:
+                mark = ":o2:"
+            if 0 < pos < 10 and board[pos - 1] == ":white_large_square:" :
+                board[pos - 1] = mark
+                count += 1
+
+                # print the board
+                line = ""
+                for x in range(len(board)):
+                    if x == 2 or x == 5 or x == 8:
+                        line += " " + board[x]
+                        await ctx.send(line)
+                        line = ""
+                    else:
+                        line += " " + board[x]
+
+                checkWinner(winningConditions, mark)
+                print(count)
+                if gameOver == True:
+                    await ctx.send(mark + " wins! <a:neon_stickman:914734586838257744>")
+                elif count >= 9:
+                    gameOver = True
+                    await ctx.send("It's a tie! <:bruhh:914734548976300062>")
+
+                # switch turns
+                if turn == player1:
+                    turn = player2
+                elif turn == player2:
+                    turn = player1
+            else:
+                await ctx.send("Be sure to choose an integer between 1 and 9 (inclusive) and an unmarked tile.")
+        else:
+            await ctx.send("It is not your turn.")
+    else:
+        await ctx.send("Please start a new game using the !tictactoe command.")
+
+
+def checkWinner(winningConditions, mark):
+    global gameOver
+    for condition in winningConditions:
+        if board[condition[0]] == mark and board[condition[1]] == mark and board[condition[2]] == mark:
+            gameOver = True
+
+@tictactoe.error
+async def tictactoe_error(ctx, error):
+    print(error)
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send("Please mention 2 players for this command.")
+    elif isinstance(error, commands.BadArgument):
+        await ctx.send("Please make sure to mention/ping players (ie. <@688534433879556134>).")
+
+@place.error
+async def place_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send("Please enter a position you would like to mark.")
+    elif isinstance(error, commands.BadArgument):
+        await ctx.send("Please make sure to enter an integer.")
+
+@client.command()
+async def end(ctx):
+ 
+ prefix = client.command_prefix
+        # We need to declare them as global first
+ global count
+ global player1
+ global player2
+ global turn
+ global gameOver
+        
+        # Assign their initial value
+ count = 0
+ player1 = ""
+ player2 = ""
+ turn = ""
+ gameOver = True
+
+ myEmbed = discord.Embed(title= f"{ctx.author} ended the game",description=f"TO START ANOTHER GAME USE {prefix}tictactoe COMMAND",color=0x2ecc71)
+ await ctx.send(embed=myEmbed)
+
+@client.command()
+async def tod(ctx):
+  prefix = client.command_prefix
+  
+  em = discord.Embed(title = "Truth or dare", description = "")
+  em.add_field(name = "Truth", value = f"{prefix}truth") 
+  em.add_field(name = "Dare", value = f"{prefix}dare")
+  em.add_field(name = "Random", value = f"{prefix}random")
+  
+
+
+@client.command(aliases=["t"])
+async def truth(ctx):
+  responses = ["If you could be invisible, what’s the first thing you would do?",
+               "What’s a secret you kept from your parents?",
+               "Who is your secret crush?",
+               "What animal do you think you most look like?",
+               "What's your favorite part of your body?",
+               "Who was your first celebrity crush?",
+               "What's the strangest dream you've ever had?",
+               "What are the top three things you look for in a love interest?",
+               "What is the one thing you’d do if you knew there’d be zero consequences?",
+               "When’s the last time you said you were sorry? For what?",
+               "Do you pee in the shower?",
+               "Do you still have feelings for any of your exes?",
+               "What’s the most embarrassing thing you’ve secretly done to get a crush’s attention?",
+               "What’s the last movie that made you cry?",
+               "What’s the last thing you Googled?",
+               "When’s the last time you got caught in a lie?",
+               "What gross smell do you actually enjoy?",
+               "What’s the most awkward thing you’ve ever been caught doing?"]
+
+  await ctx.send(f"{random.choice(responses)}")
+
+@client.command(aliases=["d"])
+async def dare(ctx):
+
+  responses = ["Send I love u to the last person u sent a dm too.",
+               "Send me names five of the cutest people in your DM list. Pick one, and you have to ask them on a date via text...",
+               "Send a text message to your crush, telling them your feet usually smell like rotten tomatoes and ask if they would put up with that.",
+               "Ghost ping the person you have a crush on",
+               "Tell your crush that you like them",
+               "Call your first DM for no reason",
+               "Send a paragraph to your crush about 3 things you love about them."
+               "Confess to your crush.",
+               "Share one of your spotify playlists",
+               "Ask your crush who they have a crush on.",
+               "Choose a truth next round and answer the next truth question with complete honesty",
+               "You have to choose a dare next round.",
+               "Send every curse word you can think of to your crush",
+               "Rate everyone here 1-10 in terms of personality.",
+               "Name one thing you would change about each person here.",
+               "Tell your crush that you don't love them."]
+
+  await ctx.send(f"{random.choice(responses)}")
+
+@client.command(aliases=["random"])
+async def r(ctx):
+
+  responses = ["If you could be invisible, what’s the first thing you would do?",
+               "What’s a secret you kept from your parents?",
+               "Who is your secret crush?",
+               "What animal do you think you most look like?",
+               "What's your favorite part of your body?",
+               "Who was your first celebrity crush?",
+               "What's the strangest dream you've ever had?",
+               "What are the top three things you look for in a love interest?",
+               "What is the one thing you’d do if you knew there’d be zero consequences?",
+               "When’s the last time you said you were sorry? For what?",
+               "Do you pee in the shower?",
+               "Do you still have feelings for any of your exes?",
+               "What’s the most embarrassing thing you’ve secretly done to get a crush’s attention?",
+               "What’s the last movie that made you cry?",
+               "What’s the last thing you Googled?",
+               "When’s the last time you got caught in a lie?",
+               "What gross smell do you actually enjoy?",
+               "What’s the most awkward thing you’ve ever been caught doing?",
+               "Send I love u to the last person u sent a dm too.",
+               "Send me names five of the cutest people in your DM list. Pick one, and you have to ask them on a date via text...",
+               "Send a text message to your crush, telling them your feet usually smell like rotten tomatoes and ask if they would put up with that.",
+               "Ghost ping the person you have a crush on",
+               "Tell your crush that you like them",
+               "Call your first DM for no reason",
+               "Send a paragraph to your crush about 3 things you love about them."
+               "Confess to your crush.",
+               "Share one of your spotify playlists",
+               "Ask your crush who they have a crush on.",
+               "Choose a truth next round and answer the next truth question with complete honesty",
+               "You have to choose a dare next round.",
+               "Send every curse word you can think of to your crush",
+               "Rate everyone here 1-10 in terms of personality.",
+               "Name one thing you would change about each person here.",
+               "Tell your crush that you don't love them."]
+     
+  await ctx.send(f"{random.choice(responses)}")
+
+@client.command()
+async def spam(ctx, amount:int, *, message):
+    limit = 100
+    if amount > limit:
+        await ctx.send("This exceeds the spam limit. The spam limit is 100")
+        return
+    else:
+        for _ in range(amount): 
+            await ctx.send(message)
+
+@client.command()
+async def act(ctx, member: discord.Member, *, message=None):
+
+        await ctx.message.delete()
+        if message == None:
+                await ctx.send(f'Write a message bruh')
+                return
+
+        webhook = await ctx.channel.create_webhook(name=member.name)
+        await webhook.send(
+            str(message), username=member.name, avatar_url=member.avatar_url)
+
+        await webhook.delete()
+
+@client.command(aliases = ["thx"])
+async def thanks(ctx):
+  responses = ["Your welcome!!", "Ok", "Always here to help!!", "If u need help type ``;help``"]
+
+  await ctx.send(f"{random.choice(responses)}")
+
+@client.command()
+async def add(ctx, num1 : float, num2 : float):
+  answer = num1 + num2
+
+  ans_em = discord.Embed(title = 'Addition', description = f'Question: {num1} + {num2}\n\nAnswer: {answer}', colour = discord.Colour.from_rgb(13, 255, 251))
+  await ctx.send(embed = ans_em)
+
+@client.command()
+async def sub(ctx, num1 : float, num2 : float):
+  answer = num1 - num2
+
+  ans_em = discord.Embed(title = 'Subtraction', description = f'Question: {num1} - {num2}\n\nAnswer: {answer}', colour = discord.Colour.from_rgb(255, 13, 17))
+
+  await ctx.send(embed = ans_em)
+
+
+@client.command()
+async def div(ctx, num1 : float, num2 : float):
+  answer = num1 / num2
+
+  ans_em = discord.Embed(title = 'Division', description = f'Question: {num1} / {num2}\n\nAnswer: {answer}', colour = discord.Colour.from_rgb(252, 252, 0))
+  
+  await ctx.send(embed = ans_em)
+
+@client.command()
+async def mul(ctx, num1 : float, num2 : float):
+  answer = num1 * num2
+
+  ans_em = discord.Embed(title = 'Multiplication', description = f'Question: {num1} x {num2}\n\nAnswer: {answer}', colour = discord.Colour.from_rgb(0, 255, 26))
+
+  await ctx.send(embed = ans_em)
+
+@client.command(aliases=["inv"])
+async def invite(ctx):
+  await ctx.send("Invite me", components=[
+                                    create_actionrow(
+                                        create_button(style=ButtonStyle.URL, # We define the button as an URL
+        label="Click me", # Label of the button
+        url=f"https://bit.ly/3qMgnCU"))
+                                    ])
+
+
+@client.command()
+async def wiki(ctx, *query_elements):
+    query = ' '.join(query_elements)
+    params = {
+        "action": "query",
+        "prop": "extracts",
+        "titles": query,
+        "exsentences": NUMBER_OF_SENTENCES,
+        "explaintext": "true",
+        "format": "json",
+        "redirects": "true"
+    }
+    headers = {"User-Agent": "BOT-NAME_CHANGE-ME/1.0"}
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get(WIKI_ENDPOINT, params=params, headers=headers) as r:
+            data = await r.json()
+            pages = data['query']['pages']
+            page = pages[ list(pages)[0] ]
+            try:
+                extract = page['extract']
+                if extract is None: raise ValueError
+            except:
+                extract = f"We could not fetch an extract for this page. Perhaps it does not exist, or the wiki queried does not support the **TextExtracts** MediaWiki extension: https://www.mediawiki.org/wiki/Extension:TextExtracts\nThe page data received is: `{page}`"
+            await ctx.send(extract)
+
+try:
+     from googlesearch import search 
+except ImportError:
+     print("No module found!")
+
+@client.command(aliases=['google'])
+async def find(ctx,*, query):
+  author = ctx.author.mention
+  async with ctx.typing(): 
+    for j in search(query, tld="co.in", num=2, stop=2, pause=2):
+
+      await ctx.send(f"Here are the links {author}", components=[
+                                    create_actionrow(
+                                        create_button(style=ButtonStyle.URL, # We define the button as an URL
+        label="Click me", # Label of the button
+        url=f"{j}"))
+                                    ])
+
+@client.command(aliases=['yt'])
+async def youtube(ctx, *, search):
+    query_string = urllib.parse.urlencode({'search_query': search})
+    htm_content = urllib.request.urlopen(
+            'http://www.youtube.com/results?' + query_string)
+    search_results = re.findall(r'/watch\?v=(.{11})',
+                                    htm_content.read().decode())
+    await ctx.send('http://www.youtube.com/watch?v=' + search_results[0])
+
+@client.command()
+@commands.is_owner()
+async def server_count(ctx):
+  em = discord.Embed(title = f"Connected on {str(len(client.guilds))} servers", description = '\n'.join(guild.name for guild in client.guilds))
+  await ctx.send(embed = em)
+
+@client.command()
+async def server(ctx):  
+  await ctx.send("Here is the link to my bot helping server.", components=[
+                                    create_actionrow(
+                                        create_button(style=ButtonStyle.URL, # We define the button as an URL
+        label="Click me", # Label of the button
+        url=f"https://discord.gg/QPw8GPtWUd"))
+                                    ])
+
+my_secret = os.environ['TOKEN']
+
+keep_alive.keep_alive()
+
+client.run(my_secret)
